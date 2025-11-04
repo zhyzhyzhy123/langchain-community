@@ -470,7 +470,7 @@ class ChatBaichuan(BaseChatModel):
         res = self._chat(messages, stream=True, **kwargs)
         if res.status_code != 200:
             raise ValueError(f"Error from Baichuan api response: {res}")
-        default_chunk_class = AIMessageChunk
+        default_chunk_class: Type[BaseMessageChunk] = AIMessageChunk
         for chunk in res.iter_lines():
             chunk = chunk.decode("utf-8").strip("\r\n")
             parts = chunk.split("data: ", 1)
@@ -487,7 +487,7 @@ class ChatBaichuan(BaseChatModel):
                 default_chunk_class = chunk.__class__
                 cg_chunk = ChatGenerationChunk(message=chunk)
                 if run_manager:
-                    run_manager.on_llm_new_token(chunk.content, chunk=cg_chunk)
+                    run_manager.on_llm_new_token(str(chunk.content), chunk=cg_chunk)
                 yield cg_chunk
 
     async def _agenerate(
@@ -572,8 +572,8 @@ class ChatBaichuan(BaseChatModel):
         )
         return res
 
-    def _create_payload_parameters(  # type: ignore[no-untyped-def]
-        self, messages: List[BaseMessage], **kwargs
+    def _create_payload_parameters(
+        self, messages: List[BaseMessage], **kwargs: Any
     ) -> Dict[str, Any]:
         parameters = {**self._default_params, **kwargs}
         temperature = parameters.pop("temperature", 0.3)
@@ -597,7 +597,7 @@ class ChatBaichuan(BaseChatModel):
 
         return payload
 
-    def _create_headers_parameters(self, **kwargs) -> Dict[str, Any]:  # type: ignore[no-untyped-def]
+    def _create_headers_parameters(self, **kwargs: Any) -> Dict[str, Any]:
         parameters = {**self._default_params, **kwargs}
         default_headers = parameters.pop("headers", {})
         api_key = ""
@@ -630,7 +630,7 @@ class ChatBaichuan(BaseChatModel):
         self,
         tools: Sequence[Union[Dict[str, Any], Type[BaseModel], Callable, BaseTool]],
         **kwargs: Any,
-    ) -> Runnable[LanguageModelInput, BaseMessage]:
+    ) -> Runnable[LanguageModelInput, AIMessage]:
         """Bind tool-like objects to this chat model.
 
         Args:
