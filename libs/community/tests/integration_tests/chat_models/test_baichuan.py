@@ -61,7 +61,8 @@ def test_extra_kwargs() -> None:
     chat = ChatBaichuan(temperature=0.88, top_p=0.7, with_search_enhance=True)  # type: ignore[call-arg]
     assert chat.temperature == 0.88
     assert chat.top_p == 0.7
-    assert chat.with_search_enhance is True
+    assert chat.with_search_enhance is False
+    # chat.with_search_enhance is no longer used
 
 
 async def test_chat_baichuan_agenerate() -> None:
